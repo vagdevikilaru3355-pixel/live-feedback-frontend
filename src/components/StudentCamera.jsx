@@ -1,14 +1,10 @@
-// src/components/StudentCamera.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { FaceMesh } from "@mediapipe/face_mesh";
 import { Camera } from "@mediapipe/camera_utils";
 
 const WS_BASE = "wss://live-feedback-backend.onrender.com";
 
-export default function StudentCamera({
-  studentId = "student",
-  roomId = "DEFAULT",
-}) {
+export default function StudentCamera({ studentId, roomId }) {
   const videoRef = useRef(null);
   const wsRef = useRef(null);
 
@@ -16,16 +12,13 @@ export default function StudentCamera({
   const [camStatus, setCamStatus] = useState("starting");
   const [currentStatus, setCurrentStatus] = useState("looking_straight");
 
-  const lastStatusRef = useRef("looking_straight");
-  const lastSentAtRef = useRef(0);
+  const lastSentRef = useRef("");
 
-  // ---------------- WebSocket ----------------
+  /* ---------------- WebSocket ---------------- */
   useEffect(() => {
-    const url = `${WS_BASE}/ws?role=student&client_id=${encodeURIComponent(
-      studentId
-    )}&room=${encodeURIComponent(roomId)}`;
-
-    const ws = new WebSocket(url);
+    const ws = new WebSocket(
+      `${WS_BASE}/ws?role=student&client_id=${studentId}&room=${roomId}`
+    );
     wsRef.current = ws;
 
     ws.onopen = () => setWsStatus("open");
@@ -36,17 +29,11 @@ export default function StudentCamera({
   }, [studentId, roomId]);
 
   function sendFeedback(status) {
-    const ws = wsRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    if (lastSentRef.current === status) return;
 
-    const now = performance.now();
-    if (status === lastStatusRef.current && now - lastSentAtRef.current < 1000)
-      return;
-
-    lastStatusRef.current = status;
-    lastSentAtRef.current = now;
-
-    ws.send(
+    lastSentRef.current = status;
+    wsRef.current.send(
       JSON.stringify({
         type: "feedback",
         feedback: status,
@@ -54,14 +41,12 @@ export default function StudentCamera({
     );
   }
 
-  // ---------------- FaceMesh + Camera ----------------
+  /* ---------------- FaceMesh ---------------- */
   useEffect(() => {
     let camera;
     let faceMesh;
 
-    function dist(a, b) {
-      return Math.hypot(a.x - b.x, a.y - b.y);
-    }
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
     function classify(landmarks) {
       const ear =
@@ -87,8 +72,8 @@ export default function StudentCamera({
         setCamStatus("running");
 
         faceMesh = new FaceMesh({
-          locateFile: (f) =>
-            `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`,
+          locateFile: (file) =>
+            `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
         });
 
         faceMesh.setOptions({
@@ -102,6 +87,7 @@ export default function StudentCamera({
             sendFeedback("looking_away");
             return;
           }
+
           const status = classify(res.multiFaceLandmarks[0]);
           setCurrentStatus(status);
           sendFeedback(status);
@@ -116,31 +102,21 @@ export default function StudentCamera({
         });
 
         camera.start();
-      } catch {
+      } catch (err) {
+        console.error(err);
         setCamStatus("error");
       }
     }
 
     start();
-
-    return () => {
-      if (camera) camera.stop();
-      if (videoRef.current?.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach((t) => t.stop());
-      }
-    };
+    return () => camera && camera.stop();
   }, []);
 
   return (
     <div style={{ textAlign: "center", color: "white" }}>
-      <h2>Student View</h2>
-      <video ref={videoRef} muted playsInline style={{ width: "80%" }} />
-      <p>
-        Status: <b>{currentStatus}</b>
-      </p>
-      <p>
-        WS: {wsStatus} | Camera: {camStatus}
-      </p>
+      <video ref={videoRef} muted playsInline width="90%" />
+      <p>Status: <b>{currentStatus}</b></p>
+      <p>WS: {wsStatus} | Camera: {camStatus}</p>
     </div>
   );
 }
