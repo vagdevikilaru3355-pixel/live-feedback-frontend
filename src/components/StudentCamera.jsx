@@ -4,57 +4,44 @@ import { Camera } from "@mediapipe/camera_utils";
 
 const WS_BASE = "wss://live-feedback-backend.onrender.com";
 
-export default function StudentCamera({ studentId, roomId }) {
+export default function StudentCamera({ studentId = "student", roomId = "DEFAULT" }) {
   const videoRef = useRef(null);
   const wsRef = useRef(null);
 
-  const [wsStatus, setWsStatus] = useState("connecting");
-  const [camStatus, setCamStatus] = useState("starting");
-  const [currentStatus, setCurrentStatus] = useState("looking_straight");
+  const [status, setStatus] = useState("looking_straight");
 
-  const lastSentRef = useRef("");
-
-  /* ---------------- WebSocket ---------------- */
   useEffect(() => {
     const ws = new WebSocket(
       `${WS_BASE}/ws?role=student&client_id=${studentId}&room=${roomId}`
     );
     wsRef.current = ws;
 
-    ws.onopen = () => setWsStatus("open");
-    ws.onclose = () => setWsStatus("closed");
-    ws.onerror = () => setWsStatus("error");
-
     return () => ws.close();
   }, [studentId, roomId]);
 
-  function sendFeedback(status) {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-    if (lastSentRef.current === status) return;
-
-    lastSentRef.current = status;
-    wsRef.current.send(
-      JSON.stringify({
-        type: "feedback",
-        feedback: status,
-      })
-    );
+  function sendFeedback(state) {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "attention_state",
+          id: studentId,
+          state,
+        })
+      );
+    }
   }
 
-  /* ---------------- FaceMesh ---------------- */
   useEffect(() => {
-    let camera;
-    let faceMesh;
+    let camera, faceMesh;
 
-    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    function dist(a, b) {
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
 
     function classify(landmarks) {
       const ear =
-        (dist(landmarks[159], landmarks[145]) /
-          dist(landmarks[33], landmarks[133]) +
-          dist(landmarks[386], landmarks[374]) /
-          dist(landmarks[362], landmarks[263])) /
-        2;
+        (dist(landmarks[159], landmarks[145]) / dist(landmarks[33], landmarks[133]) +
+          dist(landmarks[386], landmarks[374]) / dist(landmarks[362], landmarks[263])) / 2;
 
       if (ear < 0.18) return "drowsy";
 
@@ -65,47 +52,30 @@ export default function StudentCamera({ studentId, roomId }) {
     }
 
     async function start() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setCamStatus("running");
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
 
-        faceMesh = new FaceMesh({
-          locateFile: (file) =>
-            `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
-        });
+      faceMesh = new FaceMesh({
+        locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`,
+      });
 
-        faceMesh.setOptions({
-          maxNumFaces: 1,
-          refineLandmarks: true,
-        });
+      faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true });
 
-        faceMesh.onResults((res) => {
-          if (!res.multiFaceLandmarks?.length) {
-            setCurrentStatus("looking_away");
-            sendFeedback("looking_away");
-            return;
-          }
+      faceMesh.onResults((res) => {
+        if (!res.multiFaceLandmarks?.length) return;
+        const s = classify(res.multiFaceLandmarks[0]);
+        setStatus(s);
+        sendFeedback(s);
+      });
 
-          const status = classify(res.multiFaceLandmarks[0]);
-          setCurrentStatus(status);
-          sendFeedback(status);
-        });
+      camera = new Camera(videoRef.current, {
+        onFrame: async () => {
+          await faceMesh.send({ image: videoRef.current });
+        },
+      });
 
-        camera = new Camera(videoRef.current, {
-          onFrame: async () => {
-            await faceMesh.send({ image: videoRef.current });
-          },
-          width: 640,
-          height: 480,
-        });
-
-        camera.start();
-      } catch (err) {
-        console.error(err);
-        setCamStatus("error");
-      }
+      camera.start();
     }
 
     start();
@@ -114,9 +84,9 @@ export default function StudentCamera({ studentId, roomId }) {
 
   return (
     <div style={{ textAlign: "center", color: "white" }}>
-      <video ref={videoRef} muted playsInline width="90%" />
-      <p>Status: <b>{currentStatus}</b></p>
-      <p>WS: {wsStatus} | Camera: {camStatus}</p>
+      <h2>Student</h2>
+      <video ref={videoRef} muted playsInline style={{ width: "90%" }} />
+      <p>Status: <b>{status}</b></p>
     </div>
   );
 }
