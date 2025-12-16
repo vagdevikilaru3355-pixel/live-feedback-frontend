@@ -4,22 +4,20 @@ import { Camera } from "@mediapipe/camera_utils";
 
 const WS_BASE = "wss://live-feedback-backend.onrender.com";
 
-export default function StudentCamera({ studentId = "student", roomId = "DEFAULT" }) {
+export default function StudentCamera({ studentId, roomId }) {
   const videoRef = useRef(null);
   const wsRef = useRef(null);
-
-  const [status, setStatus] = useState("looking_straight");
+  const [camStatus, setCamStatus] = useState("starting");
 
   useEffect(() => {
     const ws = new WebSocket(
       `${WS_BASE}/ws?role=student&client_id=${studentId}&room=${roomId}`
     );
     wsRef.current = ws;
-
     return () => ws.close();
   }, [studentId, roomId]);
 
-  function sendFeedback(state) {
+  function send(state) {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
@@ -38,16 +36,14 @@ export default function StudentCamera({ studentId = "student", roomId = "DEFAULT
       return Math.hypot(a.x - b.x, a.y - b.y);
     }
 
-    function classify(landmarks) {
+    function classify(lm) {
       const ear =
-        (dist(landmarks[159], landmarks[145]) / dist(landmarks[33], landmarks[133]) +
-          dist(landmarks[386], landmarks[374]) / dist(landmarks[362], landmarks[263])) / 2;
+        (dist(lm[159], lm[145]) / dist(lm[33], lm[133]) +
+          dist(lm[386], lm[374]) / dist(lm[362], lm[263])) /
+        2;
 
       if (ear < 0.18) return "drowsy";
-
-      const noseX = landmarks[1].x;
-      if (noseX < 0.35 || noseX > 0.65) return "looking_away";
-
+      if (lm[1].x < 0.35 || lm[1].x > 0.65) return "looking_away";
       return "looking_straight";
     }
 
@@ -55,38 +51,38 @@ export default function StudentCamera({ studentId = "student", roomId = "DEFAULT
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
+      setCamStatus("running");
 
       faceMesh = new FaceMesh({
-        locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`,
+        locateFile: (f) =>
+          `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`,
       });
 
-      faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true });
-
-      faceMesh.onResults((res) => {
-        if (!res.multiFaceLandmarks?.length) return;
-        const s = classify(res.multiFaceLandmarks[0]);
-        setStatus(s);
-        sendFeedback(s);
+      faceMesh.onResults((r) => {
+        if (!r.multiFaceLandmarks?.length) {
+          send("looking_away");
+          return;
+        }
+        send(classify(r.multiFaceLandmarks[0]));
       });
 
       camera = new Camera(videoRef.current, {
-        onFrame: async () => {
-          await faceMesh.send({ image: videoRef.current });
-        },
+        onFrame: async () =>
+          await faceMesh.send({ image: videoRef.current }),
       });
 
       camera.start();
     }
 
     start();
-    return () => camera && camera.stop();
+    return () => camera?.stop();
   }, []);
 
   return (
-    <div style={{ textAlign: "center", color: "white" }}>
-      <h2>Student</h2>
-      <video ref={videoRef} muted playsInline style={{ width: "90%" }} />
-      <p>Status: <b>{status}</b></p>
+    <div>
+      <h3>Student Camera</h3>
+      <video ref={videoRef} autoPlay playsInline style={{ width: 260 }} />
+      <p>Status: {camStatus}</p>
     </div>
   );
 }

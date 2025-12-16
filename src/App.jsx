@@ -2,13 +2,16 @@ import TeacherDashboard from "./components/TeacherDashboard";
 import StudentCamera from "./components/StudentCamera";
 
 export default function App() {
-  const ROOM_ID = "YZRRWQ"; // MUST MATCH FOR TEACHER & STUDENTS
+  const name = "K.Vagdevi";
+  const room = "DEMO123";
 
   return (
-    <div>
-      <TeacherDashboard teacherId="K.Vagdevi" roomId={ROOM_ID} />
-      <hr />
-      <StudentCamera studentId="Student-1" roomId={ROOM_ID} />
-    </div>
+    <>
+      {/* OPEN IN ONE TAB */}
+      <TeacherDashboard teacherId={name} roomId={room} />
+
+      {/* OPEN IN ANOTHER TAB / MOBILE */}
+      {/* <StudentCamera studentId={name + "_student"} roomId={room} /> */}
+    </>
   );
 }

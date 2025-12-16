@@ -1,72 +1,49 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 
 export default function TeacherCamera() {
     const videoRef = useRef(null);
     const streamRef = useRef(null);
-
-    const [cameraOn, setCameraOn] = useState(false);
-    const [error, setError] = useState("");
+    const [on, setOn] = useState(false);
 
     async function startCamera() {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: false,
-            });
-
-            streamRef.current = stream;
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             videoRef.current.srcObject = stream;
-            setCameraOn(true);
-            setError("");
-        } catch (err) {
-            console.error(err);
-            setError("Camera permission denied or not available");
+            streamRef.current = stream;
+            setOn(true);
+        } catch {
+            alert("Camera permission denied");
         }
     }
 
     function stopCamera() {
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach((t) => t.stop());
-            streamRef.current = null;
-        }
-        setCameraOn(false);
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        videoRef.current.srcObject = null;
+        setOn(false);
     }
 
-    useEffect(() => {
-        return () => stopCamera();
-    }, []);
-
     return (
-        <div className="panel">
-            <div className="panel-title">Teacher Camera</div>
+        <div style={{ marginBottom: 20 }}>
+            <h3>Teacher Camera</h3>
 
-            {!cameraOn ? (
-                <button className="btn-primary" onClick={startCamera}>
-                    🎥 Turn Camera ON
-                </button>
+            {!on ? (
+                <button onClick={startCamera}>Camera ON</button>
             ) : (
-                <button className="btn-danger" onClick={stopCamera}>
-                    ⛔ Turn Camera OFF
-                </button>
+                <button onClick={stopCamera}>Camera OFF</button>
             )}
 
-            {error && <div className="error-text">{error}</div>}
-
-            <div className="camera-box">
-                <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    style={{
-                        width: "100%",
-                        maxWidth: "420px",
-                        borderRadius: "12px",
-                        marginTop: "12px",
-                        display: cameraOn ? "block" : "none",
-                    }}
-                />
-            </div>
+            <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                style={{
+                    width: 300,
+                    marginTop: 10,
+                    borderRadius: 8,
+                    display: on ? "block" : "none",
+                }}
+            />
         </div>
     );
 }
