@@ -1,0 +1,378 @@
+/* src/index.css */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: dark;
+  --bg: #020617;
+  --bg-elevated: #02081a;
+  --card-bg: #020b26;
+  --accent: #38bdf8;
+  --accent-soft: rgba(56, 189, 248, 0.16);
+  --danger: #ef4444;
+  --text-main: #e5e7eb;
+  --text-soft: #9ca3af;
+  --border-subtle: rgba(148, 163, 184, 0.25);
+  --radius-lg: 18px;
+  --shadow-lg: 0 25px 60px rgba(0, 0, 0, 0.8);
+  --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-main);
+  background: radial-gradient(circle at top, #0f172a 0, #020617 55%);
+  color: var(--text-main);
+}
+
+/* Landing */
+
+.landing-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+.landing-card {
+  width: 100%;
+  max-width: 520px;
+  background: radial-gradient(circle at top left, #0b1120, #020617);
+  border-radius: 24px;
+  padding: 32px 28px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.app-title {
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.app-subtitle {
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: var(--text-soft);
+}
+
+.form-group {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.form-group input {
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.85);
+  color: var(--text-main);
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+}
+
+.role-toggle {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.role-btn {
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.8);
+  padding: 7px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-soft);
+}
+
+.role-btn.active {
+  background: var(--accent-soft);
+  color: white;
+  border-color: var(--accent);
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.primary-btn,
+.secondary-btn,
+.small-btn {
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background: var(--accent);
+  color: #020617;
+  font-weight: 600;
+}
+
+.secondary-btn {
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+
+.small-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  background: rgba(15, 23, 42, 0.95);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+
+.small-btn.danger {
+  border-color: rgba(248, 113, 113, 0.8);
+  color: #fecaca;
+}
+
+.hint-text {
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+/* Meeting layout */
+
+.meeting-root {
+  min-height: 100vh;
+  padding: 18px 20px 32px;
+}
+
+.meeting-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.meeting-title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.meeting-sub {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.meeting-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.meeting-code {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Teacher dashboard */
+
+.teacher-dashboard-card {
+  margin: 0 auto;
+  max-width: 1060px;
+  background: linear-gradient(135deg, #020617, #020b26);
+  border-radius: 22px;
+  padding: 22px 22px 26px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(30, 64, 175, 0.85);
+}
+
+.section-title {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.ws-status-row {
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.ws-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.ws-ok {
+  background: rgba(22, 163, 74, 0.15);
+  color: #bbf7d0;
+  border: 1px solid rgba(22, 163, 74, 0.7);
+}
+
+.ws-bad {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fecaca;
+  border: 1px solid rgba(239, 68, 68, 0.7);
+}
+
+.card-block {
+  margin-top: 14px;
+  padding: 12px 12px 14px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(30, 64, 175, 0.6);
+}
+
+.card-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.card-line {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.pill-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pill {
+  font-size: 12px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+.pill-tag {
+  margin-left: 6px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #a5b4fc;
+}
+
+.alert-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.alert-item {
+  font-size: 13px;
+  padding: 6px 9px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alert-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.18);
+  color: #fecaca;
+}
+
+/* Student camera card */
+
+.student-video-card {
+  margin: 0 auto;
+  max-width: 720px;
+  text-align: center;
+}
+
+.student-title {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.student-video-wrapper {
+  width: 480px;
+  max-width: 90vw;
+  aspect-ratio: 4 / 3;
+  margin: 0 auto;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--shadow-lg);
+}
+
+.student-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.student-status {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .meeting-root {
+    padding: 12px 10px 24px;
+  }
+
+  .teacher-dashboard-card {
+    padding: 18px 14px 20px;
+  }
+
+  .meeting-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .student-video-wrapper {
+    width: 100%;
+  }
+}

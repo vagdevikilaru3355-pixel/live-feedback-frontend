@@ -1,0 +1,140 @@
+/* src/App.css */
+:root {
+  --bg: #242424;
+  --panel-bg: #1a1a1a;
+  --muted: rgba(255, 255, 255, 0.75);
+  --gap: 28px;
+  --card-radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: #fff;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* main 2-column grid */
+.app-root {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: var(--gap);
+  height: 100vh;
+  padding: 26px;
+  align-items: start;
+}
+
+/* left */
+.left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.column-title {
+  margin: 0 0 6px 8px;
+  font-size: 20px;
+  color: #fff;
+}
+
+/* student card */
+.student-wrap {
+  background: #121212;
+  padding: 14px;
+  border-radius: var(--card-radius);
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* make student camera stretch */
+.video-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.video-wrapper {
+  width: 100%;
+  height: calc(100vh - 240px);
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* right */
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashboard-card {
+  background: var(--panel-bg);
+  padding: 18px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  color: var(--muted);
+}
+
+.dashboard-card h3 {
+  margin: 0 0 8px 0;
+  color: #fff;
+}
+
+/* student info */
+.student-info {
+  color: #ccc;
+  font-size: 14px;
+}
+
+/* single-line alert */
+.dashboard-card .alert-line {
+  font-weight: 700;
+  color: #fff;
+  background: #111;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+/* small screens stack columns */
+@media (max-width: 900px) {
+  .app-root {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .student-wrap {
+    min-height: 360px;
+  }
+
+  .video-wrapper {
+    height: 48vh;
+  }
+}
