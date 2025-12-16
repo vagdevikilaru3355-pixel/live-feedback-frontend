@@ -1,138 +1,150 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useWebSocket from "../hooks/useWebSocket";
+import TeacherCamera from "./TeacherCamera";
 
+// 🔴 IMPORTANT: your deployed backend
 const WS_BASE = "wss://live-feedback-backend.onrender.com";
 
 export default function TeacherDashboard({
     teacherId = "teacher",
     roomId = "DEFAULT",
 }) {
-    /* ================= WebSocket ================= */
     const wsUrl = `${WS_BASE}/ws?role=teacher&client_id=${encodeURIComponent(
         teacherId
     )}&room=${encodeURIComponent(roomId)}`;
 
     const { status, lastMessage } = useWebSocket(wsUrl);
 
+    // participants: { id: true }
     const [participants, setParticipants] = useState({});
+    // attention: { id: "looking_straight" | "drowsy" }
     const [attention, setAttention] = useState({});
+    const [lastWsJson, setLastWsJson] = useState(null);
 
-    /* ================= Teacher Camera ================= */
-    const videoRef = useRef(null);
-    const streamRef = useRef(null);
-    const [cameraOn, setCameraOn] = useState(false);
-
-    async function startCamera() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            streamRef.current = stream;
-            videoRef.current.srcObject = stream;
-            await videoRef.current.play();
-            setCameraOn(true);
-        } catch (err) {
-            alert("Camera permission denied");
-        }
-    }
-
-    function stopCamera() {
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach((t) => t.stop());
-            streamRef.current = null;
-        }
-        setCameraOn(false);
-    }
-
-    /* ================= WebSocket Messages ================= */
+    // 🔁 Handle WS messages
     useEffect(() => {
         if (!lastMessage) return;
 
-        const { type, id, state } = lastMessage;
-
-        if (type === "participant_joined") {
-            setParticipants((prev) => ({ ...prev, [id]: true }));
+        let msg;
+        try {
+            msg =
+                typeof lastMessage === "string"
+                    ? JSON.parse(lastMessage)
+                    : lastMessage;
+        } catch {
+            return;
         }
 
-        if (type === "participant_left") {
-            setParticipants((prev) => {
-                const copy = { ...prev };
-                delete copy[id];
-                return copy;
-            });
-            setAttention((prev) => {
-                const copy = { ...prev };
-                delete copy[id];
-                return copy;
-            });
+        setLastWsJson(msg);
+
+        const { type, id } = msg;
+
+        // 🟢 Student joined
+        if (type === "participant_joined" && id) {
+            setParticipants((p) => ({ ...p, [id]: true }));
+            return;
         }
 
-        if (type === "attention_state") {
-            setAttention((prev) => ({ ...prev, [id]: state }));
+        // 🔴 Student left
+        if (type === "participant_left" && id) {
+            setParticipants((p) => {
+                const c = { ...p };
+                delete c[id];
+                return c;
+            });
+            setAttention((a) => {
+                const c = { ...a };
+                delete c[id];
+                return c;
+            });
+            return;
+        }
+
+        // 👀 Attention updates
+        if (type === "attention_state" && id) {
+            setAttention((a) => ({ ...a, [id]: msg.state || "looking_straight" }));
+            setParticipants((p) => ({ ...p, [id]: true }));
         }
     }, [lastMessage]);
 
-    /* ================= UI ================= */
+    const participantIds = Object.keys(participants);
+    const wsLabel =
+        status === "OPEN" ? "OPEN" : status === "CLOSED" ? "CLOSED" : "CONNECTING";
+
     return (
-        <div style={{ padding: 24, color: "white" }}>
-            <h2>Teacher Dashboard</h2>
+        <div className="teacher-dashboard-wrapper">
+            <h2 className="teacher-dashboard-title">Teacher Dashboard</h2>
 
-            <p>
-                WebSocket Status:{" "}
-                <b style={{ color: status === "OPEN" ? "#22c55e" : "#f97316" }}>
-                    {status}
-                </b>
-            </p>
+            {/* ✅ Teacher Camera */}
+            <TeacherCamera />
 
-            {/* ---------- Teacher Camera ---------- */}
-            <div style={{ marginTop: 20 }}>
-                <h3>Teacher Camera</h3>
+            {/* 🔌 WebSocket Status */}
+            <div className="ws-status-row">
+                <strong>WS Status:</strong>{" "}
+                <span
+                    className={
+                        wsLabel === "OPEN" ? "ws-pill ws-open" : "ws-pill ws-closed"
+                    }
+                >
+                    {wsLabel}
+                </span>
+            </div>
 
-                {!cameraOn ? (
-                    <button onClick={startCamera}>📷 Camera ON</button>
+            {/* 👥 Participants */}
+            <div className="panel">
+                <div className="panel-title">Participants</div>
+
+                {participantIds.length === 0 ? (
+                    <p className="panel-empty">No students connected</p>
                 ) : (
-                    <button onClick={stopCamera}>❌ Camera OFF</button>
+                    <ul className="participant-list">
+                        {participantIds.map((id) => (
+                            <li key={id} className="participant-item">
+                                <span className="participant-name">{id}</span>
+                                <span className="participant-tag">joined</span>
+                            </li>
+                        ))}
+                    </ul>
                 )}
+            </div>
 
-                <div style={{ marginTop: 12 }}>
-                    <video
-                        ref={videoRef}
-                        muted
-                        playsInline
-                        style={{
-                            width: "320px",
-                            borderRadius: "12px",
-                            background: "black",
-                            display: cameraOn ? "block" : "none",
-                        }}
-                    />
+            {/* 🚨 Live Feedback */}
+            <div className="panel">
+                <div className="panel-title">Live Feedback</div>
+
+                {Object.keys(attention).length === 0 ? (
+                    <p className="panel-empty">
+                        No feedback yet (waiting for student data)
+                    </p>
+                ) : (
+                    <ul className="alerts-list">
+                        {Object.entries(attention).map(([id, state]) => (
+                            <li key={id} className="alert-item">
+                                <span className="alert-name">{id}</span>
+                                <span
+                                    className={
+                                        state === "drowsy"
+                                            ? "alert-tag alert-bad"
+                                            : "alert-tag alert-good"
+                                    }
+                                >
+                                    {state}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+
+            {/* 🛠 Debug (optional, keep for testing) */}
+            {lastWsJson && (
+                <div className="panel debug-panel">
+                    <div className="panel-title">Last WS Message</div>
+                    <pre className="debug-json">
+                        {JSON.stringify(lastWsJson, null, 2)}
+                    </pre>
                 </div>
-            </div>
-
-            {/* ---------- Participants & Feedback ---------- */}
-            <div style={{ marginTop: 30 }}>
-                <h3>Participants</h3>
-
-                {Object.keys(participants).length === 0 && (
-                    <p>No students connected</p>
-                )}
-
-                {Object.keys(participants).map((id) => (
-                    <div key={id} style={{ marginBottom: 6 }}>
-                        <b>{id}</b> →{" "}
-                        <span
-                            style={{
-                                color:
-                                    attention[id] === "drowsy"
-                                        ? "#ef4444"
-                                        : attention[id] === "looking_away"
-                                            ? "#facc15"
-                                            : "#22c55e",
-                            }}
-                        >
-                            {attention[id] || "looking_straight"}
-                        </span>
-                    </div>
-                ))}
-            </div>
+            )}
         </div>
     );
 }
