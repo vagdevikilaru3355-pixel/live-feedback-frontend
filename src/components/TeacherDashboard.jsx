@@ -1,30 +1,53 @@
-import React from "react";
-import TeacherCamera from "./TeacherCamera";
+import React, { useEffect, useState } from "react";
 import useWebSocket from "../hooks/useWebSocket";
+import TeacherCamera from "./TeacherCamera";
 
 const WS_BASE = "wss://live-feedback-backend.onrender.com";
 
-export default function TeacherDashboard({ name, room }) {
-  const { status } = useWebSocket(
-    `${WS_BASE}/ws?role=teacher&id=${encodeURIComponent(name)}&room=${encodeURIComponent(room)}`
-  );
+export default function TeacherDashboard({ teacherId, roomId }) {
+    const { status, lastMessage } = useWebSocket(
+        `${WS_BASE}/ws?role=teacher&client_id=${teacherId}&room=${roomId}`
+    );
 
-  return (
-    <div style={{ padding: 24, color: "#fff" }}>
-      <h2>Teacher Dashboard</h2>
+    const [participants, setParticipants] = useState({});
+    const [feedback, setFeedback] = useState({});
 
-      <p>WS Status: <b>{status}</b></p>
+    useEffect(() => {
+        if (!lastMessage) return;
 
-      {/* 🔥 CAMERA IS FORCED HERE */}
-      <TeacherCamera />
+        const { type, id, state } = lastMessage;
 
-      <hr />
+        if (type === "participant_joined") {
+            setParticipants((p) => ({ ...p, [id]: true }));
+        }
 
-      <h3>Participants</h3>
-      <p>No students connected</p>
+        if (type === "participant_left") {
+            setParticipants((p) => {
+                const c = { ...p };
+                delete c[id];
+                return c;
+            });
+        }
 
-      <h3>Feedback</h3>
-      <p>Waiting for feedback…</p>
-    </div>
-  );
+        if (type === "attention_state") {
+            setFeedback((f) => ({ ...f, [id]: state }));
+        }
+    }, [lastMessage]);
+
+    return (
+        <div>
+            <h2>Teacher Dashboard</h2>
+            <p>WS Status: {status}</p>
+
+            <TeacherCamera />
+
+            <h3>Participants</h3>
+            {Object.keys(participants).length === 0 && <p>No students connected</p>}
+            {Object.keys(participants).map((id) => (
+                <p key={id}>
+                    {id} → {feedback[id] || "looking_straight"}
+                </p>
+            ))}
+        </div>
+    );
 }

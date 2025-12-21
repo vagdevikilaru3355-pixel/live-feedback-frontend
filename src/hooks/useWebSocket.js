@@ -6,6 +6,8 @@ export default function useWebSocket(url) {
   const [lastMessage, setLastMessage] = useState(null);
 
   useEffect(() => {
+    if (!url) return;
+
     const ws = new WebSocket(url);
     wsRef.current = ws;
 
@@ -13,22 +15,20 @@ export default function useWebSocket(url) {
     ws.onclose = () => setStatus("CLOSED");
     ws.onerror = () => setStatus("ERROR");
 
-    ws.onmessage = (event) => {
+    ws.onmessage = (e) => {
       try {
-        setLastMessage(JSON.parse(event.data));
-      } catch {
-        setLastMessage(null);
-      }
+        setLastMessage(JSON.parse(e.data));
+      } catch {}
     };
 
     return () => ws.close();
   }, [url]);
 
-  const send = (data) => {
+  function send(data) {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(data));
     }
-  };
+  }
 
   return { status, lastMessage, send };
 }
