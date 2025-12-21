@@ -1,53 +1,61 @@
+// src/components/TeacherDashboard.jsx
 import React, { useEffect, useState } from "react";
-import useWebSocket from "../hooks/useWebSocket";
-import TeacherCamera from "./TeacherCamera";
 
-const WS_BASE = "wss://live-feedback-backend.onrender.com";
+const WS_HOST = "wss://live-feedback-backend.onrender.com";
 
-export default function TeacherDashboard({ teacherId, roomId }) {
-    const { status, lastMessage } = useWebSocket(
-        `${WS_BASE}/ws?role=teacher&client_id=${teacherId}&room=${roomId}`
-    );
-
+export default function TeacherDashboard({ teacherId }) {
     const [participants, setParticipants] = useState({});
-    const [feedback, setFeedback] = useState({});
+    const [alerts, setAlerts] = useState({});
 
     useEffect(() => {
-        if (!lastMessage) return;
+        const ws = new WebSocket(
+            `${WS_HOST}/ws?role=teacher&client_id=${teacherId}`
+        );
 
-        const { type, id, state } = lastMessage;
+        ws.onmessage = (e) => {
+            const data = JSON.parse(e.data);
 
-        if (type === "participant_joined") {
-            setParticipants((p) => ({ ...p, [id]: true }));
-        }
+            if (data.type === "alert") {
+                setAlerts((prev) => ({
+                    ...prev,
+                    [data.id]: data.alert.label,
+                }));
 
-        if (type === "participant_left") {
-            setParticipants((p) => {
-                const c = { ...p };
-                delete c[id];
-                return c;
-            });
-        }
+                setParticipants((prev) => ({
+                    ...prev,
+                    [data.id]: true,
+                }));
+            }
 
-        if (type === "attention_state") {
-            setFeedback((f) => ({ ...f, [id]: state }));
-        }
-    }, [lastMessage]);
+            if (data.type === "alert_cleared") {
+                setAlerts((prev) => {
+                    const c = { ...prev };
+                    delete c[data.id];
+                    return c;
+                });
+            }
+        };
+    }, [teacherId]);
 
     return (
         <div>
-            <h2>Teacher Dashboard</h2>
-            <p>WS Status: {status}</p>
-
-            <TeacherCamera />
-
             <h3>Participants</h3>
-            {Object.keys(participants).length === 0 && <p>No students connected</p>}
-            {Object.keys(participants).map((id) => (
-                <p key={id}>
-                    {id} → {feedback[id] || "looking_straight"}
-                </p>
-            ))}
+            {Object.keys(participants).length === 0 && <p>No students</p>}
+            <ul>
+                {Object.keys(participants).map((id) => (
+                    <li key={id}>{id}</li>
+                ))}
+            </ul>
+
+            <h3>Alerts</h3>
+            {Object.keys(alerts).length === 0 && <p>No alerts</p>}
+            <ul>
+                {Object.entries(alerts).map(([id, alert]) => (
+                    <li key={id}>
+                        ⚠ {id}: {alert}
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }

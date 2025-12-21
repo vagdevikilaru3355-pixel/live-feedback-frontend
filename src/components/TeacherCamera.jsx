@@ -1,8 +1,9 @@
+// src/components/TeacherCamera.jsx
 import React, { useEffect, useRef, useState } from "react";
 
-export default function TeacherCamera() {
+export default function TeacherCamera({ teacherId }) {
     const videoRef = useRef(null);
-    const [error, setError] = useState("");
+    const [status, setStatus] = useState("starting");
 
     useEffect(() => {
         async function startCamera() {
@@ -12,24 +13,27 @@ export default function TeacherCamera() {
                     audio: false,
                 });
                 videoRef.current.srcObject = stream;
+                setStatus("running");
             } catch (err) {
-                setError("Camera permission required");
+                console.error("Teacher camera error", err);
+                setStatus("blocked");
             }
         }
+
         startCamera();
     }, []);
 
     return (
         <div>
             <h3>Teacher Camera</h3>
-            {error && <p style={{ color: "red" }}>{error}</p>}
             <video
                 ref={videoRef}
                 autoPlay
                 muted
                 playsInline
-                style={{ width: "320px", borderRadius: 8 }}
+                style={{ width: "100%", borderRadius: "12px", background: "#000" }}
             />
+            <p>Status: {status}</p>
         </div>
     );
 }
