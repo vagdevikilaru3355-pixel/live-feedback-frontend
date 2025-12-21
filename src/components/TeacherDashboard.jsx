@@ -1,53 +1,26 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import TeacherCamera from "./TeacherCamera";
 
 export default function TeacherDashboard() {
-    const [alerts, setAlerts] = useState({});
     const [wsStatus, setWsStatus] = useState("connecting");
 
     useEffect(() => {
         const ws = new WebSocket(
-            "wss://live-feedback-backend.onrender.com/ws?role=teacher&client_id=teacher"
+            "ws://127.0.0.1:8000/ws?role=teacher&client_id=teacher-1"
         );
 
-        ws.onopen = () => setWsStatus("open");
-        ws.onclose = () => setWsStatus("closed");
-
-        ws.onmessage = (e) => {
-            const data = JSON.parse(e.data);
-
-            if (data.type === "alert") {
-                setAlerts((prev) => ({
-                    ...prev,
-                    [data.id]: data.alert,
-                }));
-            }
-
-            if (data.type === "alert_cleared") {
-                setAlerts((prev) => {
-                    const copy = { ...prev };
-                    delete copy[data.id];
-                    return copy;
-                });
-            }
-        };
+        ws.onopen = () => setWsStatus("OPEN");
+        ws.onclose = () => setWsStatus("CLOSED");
 
         return () => ws.close();
     }, []);
 
     return (
-        <div>
+        <>
+            <TeacherCamera />
             <h3>Teacher Dashboard</h3>
-            <div>WS Status: {wsStatus}</div>
-
-            {Object.keys(alerts).length === 0 && (
-                <p>No alerts</p>
-            )}
-
-            {Object.entries(alerts).map(([id, a]) => (
-                <div key={id}>
-                    {id} → {a.label}
-                </div>
-            ))}
-        </div>
+            <p>WS Status: {wsStatus}</p>
+            <p>No students connected (yet)</p>
+        </>
     );
 }
