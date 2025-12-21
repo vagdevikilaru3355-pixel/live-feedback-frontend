@@ -9,18 +9,20 @@ export default function App() {
 
   if (!role) {
     return (
-      <div className="login">
+      <div style={{ padding: 40 }}>
         <h2>Live Feedback System</h2>
 
         <input
           placeholder="Your name"
-          onChange={e => setName(e.target.value)}
+          onChange={(e) => setName(e.target.value)}
         />
+        <br /><br />
 
         <input
           placeholder="Meeting code"
-          onChange={e => setRoom(e.target.value)}
+          onChange={(e) => setRoom(e.target.value)}
         />
+        <br /><br />
 
         <button onClick={() => setRole("teacher")}>Teacher</button>
         <button onClick={() => setRole("student")}>Student</button>
