@@ -5,28 +5,26 @@ import useWebSocket from "../hooks/useWebSocket";
 const WS_BASE = "wss://live-feedback-backend.onrender.com";
 
 export default function TeacherDashboard({ name, room }) {
-    const { status, lastMessage } = useWebSocket(
+    const { status } = useWebSocket(
         `${WS_BASE}/ws?role=teacher&id=${encodeURIComponent(name)}&room=${encodeURIComponent(room)}`
     );
 
     return (
-        <div style={{ padding: "20px", color: "white" }}>
+        <div style={{ padding: "24px", color: "#fff" }}>
             <h2>Teacher Dashboard</h2>
 
-            <p>
-                WS Status: <b>{status}</b>
-            </p>
+            <p>WS Status: <b>{status}</b></p>
 
-            {/* 🔴 THIS WAS MISSING BEFORE */}
+            {/* ✅ CAMERA MUST APPEAR HERE */}
             <TeacherCamera />
 
             <hr />
 
             <h3>Participants</h3>
-            <p>(Will appear when students join)</p>
+            <p>No students connected</p>
 
             <h3>Feedback</h3>
-            <p>(Live attention feedback will appear here)</p>
+            <p>Waiting for student attention events…</p>
         </div>
     );
 }
