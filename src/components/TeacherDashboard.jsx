@@ -1,48 +1,55 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import useWebSocket from "../hooks/useWebSocket";
 import TeacherCamera from "./TeacherCamera";
 
 const WS_BASE = "wss://live-feedback-backend.onrender.com";
 
 export default function TeacherDashboard({ name, room }) {
-    const wsUrl = `${WS_BASE}/ws?role=teacher&client_id=${name}&room=${room}`;
-    const { status, messages } = useWebSocket(wsUrl);
+    const { status, lastMessage } = useWebSocket(
+        `${WS_BASE}/ws?role=teacher&id=${name}&room=${room}`
+    );
 
-    const participants = {};
-    const feedback = {};
+    const [participants, setParticipants] = useState({});
+    const [feedback, setFeedback] = useState({});
 
-    messages.forEach((m) => {
-        if (m.type === "participant_joined") participants[m.id] = true;
-        if (m.type === "participant_left") delete participants[m.id];
-        if (m.type === "attention_state") feedback[m.id] = m.state;
-    });
+    useEffect(() => {
+        if (!lastMessage) return;
+
+        const { type, id, state } = lastMessage;
+
+        if (type === "join") {
+            setParticipants(p => ({ ...p, [id]: true }));
+        }
+
+        if (type === "leave") {
+            setParticipants(p => {
+                const c = { ...p };
+                delete c[id];
+                return c;
+            });
+        }
+
+        if (type === "attention") {
+            setFeedback(f => ({ ...f, [id]: state }));
+        }
+    }, [lastMessage]);
 
     return (
-        <div style={{ padding: 20 }}>
+        <div>
             <h2>Teacher Dashboard</h2>
-            <p>WS: {status}</p>
+            <p>WS Status: {status}</p>
 
-            {/* CAMERA */}
             <TeacherCamera />
 
-            {/* PARTICIPANTS */}
-            <h3>Participants</h3>
-            {Object.keys(participants).length === 0 && <p>No students</p>}
-            <ul>
-                {Object.keys(participants).map((id) => (
-                    <li key={id}>{id}</li>
+            <div className="panel">
+                <h3>Participants</h3>
+                {Object.keys(participants).length === 0 && <p>No students</p>}
+                {Object.keys(participants).map(id => (
+                    <div key={id}>
+                        {id} → {feedback[id] || "looking_straight"}
+                    </div>
                 ))}
-            </ul>
-
-            {/* FEEDBACK */}
-            <h3>Feedback</h3>
-            <ul>
-                {Object.entries(feedback).map(([id, state]) => (
-                    <li key={id}>
-                        {id} → {state}
-                    </li>
-                ))}
-            </ul>
+            </div>
         </div>
     );
 }

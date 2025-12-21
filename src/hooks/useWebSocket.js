@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 export default function useWebSocket(url) {
   const wsRef = useRef(null);
   const [status, setStatus] = useState("CONNECTING");
-  const [messages, setMessages] = useState([]);
+  const [lastMessage, setLastMessage] = useState(null);
 
   useEffect(() => {
     const ws = new WebSocket(url);
@@ -13,21 +13,22 @@ export default function useWebSocket(url) {
     ws.onclose = () => setStatus("CLOSED");
     ws.onerror = () => setStatus("ERROR");
 
-    ws.onmessage = (e) => {
+    ws.onmessage = (event) => {
       try {
-        const msg = JSON.parse(e.data);
-        setMessages((prev) => [...prev, msg]);
-      } catch { }
+        setLastMessage(JSON.parse(event.data));
+      } catch {
+        setLastMessage(null);
+      }
     };
 
     return () => ws.close();
   }, [url]);
 
   const send = (data) => {
-    if (wsRef.current?.readyState === 1) {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(data));
     }
   };
 
-  return { status, messages, send };
+  return { status, lastMessage, send };
 }

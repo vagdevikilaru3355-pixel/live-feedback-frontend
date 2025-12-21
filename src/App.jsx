@@ -9,19 +9,28 @@ export default function App() {
 
   if (!role) {
     return (
-      <div>
+      <div className="login">
         <h2>Live Feedback System</h2>
-        <input placeholder="Name" onChange={(e) => setName(e.target.value)} />
-        <input placeholder="Room" onChange={(e) => setRoom(e.target.value)} />
+
+        <input
+          placeholder="Your name"
+          onChange={e => setName(e.target.value)}
+        />
+
+        <input
+          placeholder="Meeting code"
+          onChange={e => setRoom(e.target.value)}
+        />
+
         <button onClick={() => setRole("teacher")}>Teacher</button>
         <button onClick={() => setRole("student")}>Student</button>
       </div>
     );
   }
 
-  return role === "teacher" ? (
-    <TeacherDashboard name={name} room={room} />
-  ) : (
-    <StudentCamera name={name} room={room} />
-  );
+  if (role === "teacher") {
+    return <TeacherDashboard name={name} room={room} />;
+  }
+
+  return <StudentCamera />;
 }

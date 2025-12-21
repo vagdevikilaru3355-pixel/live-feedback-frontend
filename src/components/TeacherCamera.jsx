@@ -1,9 +1,9 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export default function TeacherCamera() {
     const videoRef = useRef(null);
-    const streamRef = useRef(null);
     const [on, setOn] = useState(false);
+    const streamRef = useRef(null);
 
     const startCamera = async () => {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -13,22 +13,15 @@ export default function TeacherCamera() {
     };
 
     const stopCamera = () => {
-        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current?.getTracks().forEach(t => t.stop());
+        videoRef.current.srcObject = null;
         setOn(false);
     };
 
-    useEffect(() => () => stopCamera(), []);
-
     return (
-        <div>
+        <div className="panel">
             <h3>Teacher Camera</h3>
-            <video
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                style={{ width: 360, height: 260, background: "black" }}
-            />
+            <video ref={videoRef} autoPlay muted playsInline width="320" />
             <div>
                 {!on ? (
                     <button onClick={startCamera}>Camera ON</button>
