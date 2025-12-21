@@ -1,63 +1,48 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import useWebSocket from "../hooks/useWebSocket";
 import TeacherCamera from "./TeacherCamera";
 
 const WS_BASE = "wss://live-feedback-backend.onrender.com";
 
-export default function TeacherDashboard({ teacherId, roomId }) {
-    const { status, lastMessage } = useWebSocket(
-        `${WS_BASE}/ws?role=teacher&client_id=${teacherId}&room=${roomId}`
-    );
+export default function TeacherDashboard({ name, room }) {
+    const wsUrl = `${WS_BASE}/ws?role=teacher&client_id=${name}&room=${room}`;
+    const { status, messages } = useWebSocket(wsUrl);
 
-    const [participants, setParticipants] = useState({});
-    const [attention, setAttention] = useState({});
+    const participants = {};
+    const feedback = {};
 
-    useEffect(() => {
-        if (!lastMessage) return;
-
-        const msg = JSON.parse(lastMessage.data);
-
-        if (msg.type === "participant_joined") {
-            setParticipants((p) => ({ ...p, [msg.id]: true }));
-        }
-
-        if (msg.type === "participant_left") {
-            setParticipants((p) => {
-                const c = { ...p };
-                delete c[msg.id];
-                return c;
-            });
-            setAttention((a) => {
-                const c = { ...a };
-                delete c[msg.id];
-                return c;
-            });
-        }
-
-        if (msg.type === "attention_state") {
-            setParticipants((p) => ({ ...p, [msg.id]: true }));
-            setAttention((a) => ({ ...a, [msg.id]: msg.state }));
-        }
-    }, [lastMessage]);
+    messages.forEach((m) => {
+        if (m.type === "participant_joined") participants[m.id] = true;
+        if (m.type === "participant_left") delete participants[m.id];
+        if (m.type === "attention_state") feedback[m.id] = m.state;
+    });
 
     return (
         <div style={{ padding: 20 }}>
             <h2>Teacher Dashboard</h2>
-            <p>WS Status: {status}</p>
+            <p>WS: {status}</p>
 
+            {/* CAMERA */}
             <TeacherCamera />
 
-            <h3>Participants & Feedback</h3>
+            {/* PARTICIPANTS */}
+            <h3>Participants</h3>
+            {Object.keys(participants).length === 0 && <p>No students</p>}
+            <ul>
+                {Object.keys(participants).map((id) => (
+                    <li key={id}>{id}</li>
+                ))}
+            </ul>
 
-            {Object.keys(participants).length === 0 && (
-                <p>No students connected</p>
-            )}
-
-            {Object.keys(participants).map((id) => (
-                <div key={id}>
-                    <b>{id}</b> → {attention[id] || "looking_straight"}
-                </div>
-            ))}
+            {/* FEEDBACK */}
+            <h3>Feedback</h3>
+            <ul>
+                {Object.entries(feedback).map(([id, state]) => (
+                    <li key={id}>
+                        {id} → {state}
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }

@@ -1,17 +1,27 @@
+import React, { useState } from "react";
 import TeacherDashboard from "./components/TeacherDashboard";
 import StudentCamera from "./components/StudentCamera";
 
 export default function App() {
-  const name = "K.Vagdevi";
-  const room = "DEMO123";
+  const [role, setRole] = useState(null);
+  const [name, setName] = useState("");
+  const [room, setRoom] = useState("");
 
-  return (
-    <>
-      {/* OPEN IN ONE TAB */}
-      <TeacherDashboard teacherId={name} roomId={room} />
+  if (!role) {
+    return (
+      <div>
+        <h2>Live Feedback System</h2>
+        <input placeholder="Name" onChange={(e) => setName(e.target.value)} />
+        <input placeholder="Room" onChange={(e) => setRoom(e.target.value)} />
+        <button onClick={() => setRole("teacher")}>Teacher</button>
+        <button onClick={() => setRole("student")}>Student</button>
+      </div>
+    );
+  }
 
-      {/* OPEN IN ANOTHER TAB / MOBILE */}
-      {/* <StudentCamera studentId={name + "_student"} roomId={room} /> */}
-    </>
+  return role === "teacher" ? (
+    <TeacherDashboard name={name} room={room} />
+  ) : (
+    <StudentCamera name={name} room={room} />
   );
 }

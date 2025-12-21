@@ -1,49 +1,41 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 export default function TeacherCamera() {
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const [on, setOn] = useState(false);
 
-    async function startCamera() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            videoRef.current.srcObject = stream;
-            streamRef.current = stream;
-            setOn(true);
-        } catch {
-            alert("Camera permission denied");
-        }
-    }
+    const startCamera = async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        streamRef.current = stream;
+        videoRef.current.srcObject = stream;
+        setOn(true);
+    };
 
-    function stopCamera() {
+    const stopCamera = () => {
         streamRef.current?.getTracks().forEach((t) => t.stop());
-        videoRef.current.srcObject = null;
         setOn(false);
-    }
+    };
+
+    useEffect(() => () => stopCamera(), []);
 
     return (
-        <div style={{ marginBottom: 20 }}>
+        <div>
             <h3>Teacher Camera</h3>
-
-            {!on ? (
-                <button onClick={startCamera}>Camera ON</button>
-            ) : (
-                <button onClick={stopCamera}>Camera OFF</button>
-            )}
-
             <video
                 ref={videoRef}
                 autoPlay
                 muted
                 playsInline
-                style={{
-                    width: 300,
-                    marginTop: 10,
-                    borderRadius: 8,
-                    display: on ? "block" : "none",
-                }}
+                style={{ width: 360, height: 260, background: "black" }}
             />
+            <div>
+                {!on ? (
+                    <button onClick={startCamera}>Camera ON</button>
+                ) : (
+                    <button onClick={stopCamera}>Camera OFF</button>
+                )}
+            </div>
         </div>
     );
 }
