@@ -1,26 +1,36 @@
 import { useEffect, useState } from "react";
-import TeacherCamera from "./TeacherCamera";
 
 export default function TeacherDashboard() {
-    const [wsStatus, setWsStatus] = useState("connecting");
+    const [students, setStudents] = useState([]);
+    const [alerts, setAlerts] = useState([]);
 
     useEffect(() => {
         const ws = new WebSocket(
-            "ws://127.0.0.1:8000/ws?role=teacher&client_id=teacher-1"
+            "wss://YOUR-BACKEND.onrender.com/ws?role=teacher&client_id=teacher"
         );
 
-        ws.onopen = () => setWsStatus("OPEN");
-        ws.onclose = () => setWsStatus("CLOSED");
+        ws.onmessage = e => {
+            const data = JSON.parse(e.data);
 
-        return () => ws.close();
+            if (data.type === "participants_snapshot") {
+                setStudents(data.students);
+            }
+
+            if (data.type === "attention_feedback") {
+                setAlerts(a => [...a, data]);
+            }
+        };
     }, []);
 
     return (
-        <>
-            <TeacherCamera />
-            <h3>Teacher Dashboard</h3>
-            <p>WS Status: {wsStatus}</p>
-            <p>No students connected (yet)</p>
-        </>
+        <div>
+            <h3>Participants</h3>
+            {students.map(s => <div key={s}>{s}</div>)}
+
+            <h3>Alerts</h3>
+            {alerts.map((a, i) =>
+                <div key={i}>{a.id} → {a.status}</div>
+            )}
+        </div>
     );
 }

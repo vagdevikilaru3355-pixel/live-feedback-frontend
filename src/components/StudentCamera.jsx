@@ -1,31 +1,26 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export default function StudentCamera({ studentId }) {
   const videoRef = useRef(null);
-  const [status, setStatus] = useState("starting");
+  const wsRef = useRef(null);
 
   useEffect(() => {
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
-        videoRef.current.srcObject = stream;
-        setStatus("camera-on");
-      } catch (err) {
-        console.error(err);
-        setStatus("camera-error");
-      }
-    }
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => videoRef.current.srcObject = stream);
 
-    startCamera();
+    wsRef.current = new WebSocket(
+      `wss://YOUR-BACKEND.onrender.com/ws?role=student&client_id=${studentId}`
+    );
+
+    const interval = setInterval(() => {
+      wsRef.current.send({
+        type: "feedback",
+        status: "looking_straight"
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  return (
-    <>
-      <video ref={videoRef} autoPlay muted playsInline />
-      <p>Status: {status}</p>
-    </>
-  );
+  return <video ref={videoRef} autoPlay muted />;
 }
