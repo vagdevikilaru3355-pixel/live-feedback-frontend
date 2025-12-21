@@ -1,26 +1,50 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function StudentCamera({ studentId }) {
   const videoRef = useRef(null);
-  const wsRef = useRef(null);
+  const [status, setStatus] = useState("starting");
 
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => videoRef.current.srcObject = stream);
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        videoRef.current.srcObject = stream;
+        setStatus("camera-on");
+      } catch (err) {
+        console.error("Camera error:", err);
 
-    wsRef.current = new WebSocket(
-      `wss://YOUR-BACKEND.onrender.com/ws?role=student&client_id=${studentId}`
-    );
+        if (err.name === "NotAllowedError") {
+          setStatus("permission-denied");
+        } else {
+          setStatus("camera-error");
+        }
+      }
+    }
 
-    const interval = setInterval(() => {
-      wsRef.current.send({
-        type: "feedback",
-        status: "looking_straight"
-      });
-    }, 3000);
-
-    return () => clearInterval(interval);
+    startCamera();
   }, []);
 
-  return <video ref={videoRef} autoPlay muted />;
+  return (
+    <div>
+      <h3>Student Camera ({studentId})</h3>
+
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        style={{
+          width: "100%",
+          height: 300,
+          background: "black",
+          borderRadius: 12,
+        }}
+      />
+
+      <p>Status: {status}</p>
+    </div>
+  );
 }
