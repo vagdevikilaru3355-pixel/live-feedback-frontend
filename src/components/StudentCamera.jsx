@@ -1,7 +1,4 @@
-// src/components/StudentCamera.jsx
 import React, { useEffect, useRef, useState } from "react";
-
-const WS_HOST = "wss://live-feedback-backend.onrender.com";
 
 export default function StudentCamera({ studentId }) {
   const videoRef = useRef(null);
@@ -9,34 +6,33 @@ export default function StudentCamera({ studentId }) {
   const [status, setStatus] = useState("starting");
 
   useEffect(() => {
-    async function start() {
-      // CAMERA
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      videoRef.current.srcObject = stream;
-      setStatus("camera-running");
-
-      // WEBSOCKET
-      wsRef.current = new WebSocket(
-        `${WS_HOST}/ws?role=student&client_id=${studentId}`
-      );
-
-      wsRef.current.onopen = () => {
-        console.log("Student WS connected");
-
-        // send demo attention event every 5 sec
-        setInterval(() => {
-          wsRef.current.send(
-            JSON.stringify({
-              type: "feature",
-              ts: Date.now(),
-              derived: { events: ["looking-away"] },
-            })
-          );
-        }, 5000);
-      };
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        videoRef.current.srcObject = stream;
+        setStatus("camera-on");
+      } catch (e) {
+        console.error("Student camera error", e);
+        setStatus("permission-denied");
+      }
     }
 
-    start();
+    startCamera();
+
+    wsRef.current = new WebSocket(
+      "wss://live-feedback-backend.onrender.com/ws?role=student&client_id=" +
+      studentId
+    );
+
+    return () => {
+      wsRef.current?.close();
+      videoRef.current?.srcObject
+        ?.getTracks()
+        .forEach((t) => t.stop());
+    };
   }, [studentId]);
 
   return (
@@ -47,9 +43,9 @@ export default function StudentCamera({ studentId }) {
         autoPlay
         playsInline
         muted
-        style={{ width: "100%", borderRadius: "12px" }}
+        style={{ width: "100%", background: "#000" }}
       />
-      <p>Status: {status}</p>
+      <div>Status: {status}</div>
     </div>
   );
 }

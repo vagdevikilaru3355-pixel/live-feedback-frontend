@@ -1,16 +1,16 @@
-// src/components/TeacherDashboard.jsx
 import React, { useEffect, useState } from "react";
 
-const WS_HOST = "wss://live-feedback-backend.onrender.com";
-
-export default function TeacherDashboard({ teacherId }) {
-    const [participants, setParticipants] = useState({});
+export default function TeacherDashboard() {
     const [alerts, setAlerts] = useState({});
+    const [wsStatus, setWsStatus] = useState("connecting");
 
     useEffect(() => {
         const ws = new WebSocket(
-            `${WS_HOST}/ws?role=teacher&client_id=${teacherId}`
+            "wss://live-feedback-backend.onrender.com/ws?role=teacher&client_id=teacher"
         );
+
+        ws.onopen = () => setWsStatus("open");
+        ws.onclose = () => setWsStatus("closed");
 
         ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
@@ -18,44 +18,36 @@ export default function TeacherDashboard({ teacherId }) {
             if (data.type === "alert") {
                 setAlerts((prev) => ({
                     ...prev,
-                    [data.id]: data.alert.label,
-                }));
-
-                setParticipants((prev) => ({
-                    ...prev,
-                    [data.id]: true,
+                    [data.id]: data.alert,
                 }));
             }
 
             if (data.type === "alert_cleared") {
                 setAlerts((prev) => {
-                    const c = { ...prev };
-                    delete c[data.id];
-                    return c;
+                    const copy = { ...prev };
+                    delete copy[data.id];
+                    return copy;
                 });
             }
         };
-    }, [teacherId]);
+
+        return () => ws.close();
+    }, []);
 
     return (
         <div>
-            <h3>Participants</h3>
-            {Object.keys(participants).length === 0 && <p>No students</p>}
-            <ul>
-                {Object.keys(participants).map((id) => (
-                    <li key={id}>{id}</li>
-                ))}
-            </ul>
+            <h3>Teacher Dashboard</h3>
+            <div>WS Status: {wsStatus}</div>
 
-            <h3>Alerts</h3>
-            {Object.keys(alerts).length === 0 && <p>No alerts</p>}
-            <ul>
-                {Object.entries(alerts).map(([id, alert]) => (
-                    <li key={id}>
-                        ⚠ {id}: {alert}
-                    </li>
-                ))}
-            </ul>
+            {Object.keys(alerts).length === 0 && (
+                <p>No alerts</p>
+            )}
+
+            {Object.entries(alerts).map(([id, a]) => (
+                <div key={id}>
+                    {id} → {a.label}
+                </div>
+            ))}
         </div>
     );
 }
