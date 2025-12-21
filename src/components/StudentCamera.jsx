@@ -14,9 +14,9 @@ export default function StudentCamera({ studentId }) {
         videoRef.current.srcObject = stream;
         setStatus("camera-on");
       } catch (err) {
-        console.error("Camera error:", err);
+        console.error("Student camera error:", err);
 
-        if (err.name === "NotAllowedError") {
+        if (err && err.name === "NotAllowedError") {
           setStatus("permission-denied");
         } else {
           setStatus("camera-error");
@@ -30,7 +30,6 @@ export default function StudentCamera({ studentId }) {
   return (
     <div>
       <h3>Student Camera ({studentId})</h3>
-
       <video
         ref={videoRef}
         autoPlay
@@ -38,12 +37,11 @@ export default function StudentCamera({ studentId }) {
         playsInline
         style={{
           width: "100%",
-          height: 300,
+          height: "300px",
           background: "black",
-          borderRadius: 12,
+          borderRadius: "12px",
         }}
       />
-
       <p>Status: {status}</p>
     </div>
   );

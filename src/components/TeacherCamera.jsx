@@ -14,12 +14,12 @@ export default function TeacherCamera() {
                 videoRef.current.srcObject = stream;
                 setStatus("camera-on");
             } catch (err) {
-                console.error("Camera error:", err);
+                console.error("Teacher camera error:", err);
 
-                if (err.name === "NotAllowedError") {
+                if (err && err.name === "NotAllowedError") {
                     setStatus("permission-denied");
-                } else if (err.name === "NotFoundError") {
-                    setStatus("no-camera-found");
+                } else if (err && err.name === "NotFoundError") {
+                    setStatus("no-camera");
                 } else {
                     setStatus("camera-error");
                 }
@@ -32,7 +32,6 @@ export default function TeacherCamera() {
     return (
         <div>
             <h3>Teacher Camera</h3>
-
             <video
                 ref={videoRef}
                 autoPlay
@@ -40,17 +39,16 @@ export default function TeacherCamera() {
                 playsInline
                 style={{
                     width: "100%",
-                    height: 300,
+                    height: "300px",
                     background: "black",
-                    borderRadius: 12,
+                    borderRadius: "12px",
                 }}
             />
-
             <p>Status: {status}</p>
 
             {status === "permission-denied" && (
                 <p style={{ color: "red" }}>
-                    Please allow camera access in browser settings.
+                    Camera access denied. Allow camera in browser settings.
                 </p>
             )}
         </div>
