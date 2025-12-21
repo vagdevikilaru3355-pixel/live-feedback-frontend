@@ -12,10 +12,16 @@ export default function App() {
       <div style={{ padding: 40 }}>
         <h2>Live Feedback System</h2>
 
-        <input placeholder="Your name" onChange={e => setName(e.target.value)} />
+        <input
+          placeholder="Your name"
+          onChange={e => setName(e.target.value)}
+        />
         <br /><br />
 
-        <input placeholder="Meeting code" onChange={e => setRoom(e.target.value)} />
+        <input
+          placeholder="Meeting code"
+          onChange={e => setRoom(e.target.value)}
+        />
         <br /><br />
 
         <button onClick={() => setRole("teacher")}>Teacher</button>

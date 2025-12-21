@@ -11,9 +11,9 @@ export default function TeacherCamera() {
       streamRef.current = stream;
       videoRef.current.srcObject = stream;
       setOn(true);
-    } catch (err) {
+    } catch (e) {
       alert("Camera permission denied");
-      console.error(err);
+      console.error(e);
     }
   };
 
@@ -25,7 +25,7 @@ export default function TeacherCamera() {
 
   return (
     <div style={{ marginTop: 20 }}>
-      <h3>Teacher Camera</h3>
+      <h3>🎥 Teacher Camera</h3>
 
       <video
         ref={videoRef}
@@ -33,7 +33,7 @@ export default function TeacherCamera() {
         muted
         playsInline
         width="320"
-        style={{ background: "#000", borderRadius: 8 }}
+        style={{ background: "black", borderRadius: 8 }}
       />
 
       <div style={{ marginTop: 10 }}>
