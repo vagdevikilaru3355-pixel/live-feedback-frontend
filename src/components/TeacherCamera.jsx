@@ -2,8 +2,7 @@ import { useRef, useState } from "react";
 
 export default function TeacherCamera() {
     const videoRef = useRef(null);
-    const [started, setStarted] = useState(false);
-    const [error, setError] = useState("");
+    const [status, setStatus] = useState("idle");
 
     async function startCamera() {
         try {
@@ -12,9 +11,10 @@ export default function TeacherCamera() {
                 audio: false,
             });
             videoRef.current.srcObject = stream;
-            setStarted(true);
-        } catch (e) {
-            setError("Camera permission denied");
+            setStatus("camera-on");
+        } catch (err) {
+            console.error("Teacher camera error:", err);
+            setStatus("camera-error");
         }
     }
 
@@ -22,9 +22,9 @@ export default function TeacherCamera() {
         <div>
             <h3>Teacher Camera</h3>
 
-            {!started && (
+            {status !== "camera-on" && (
                 <button onClick={startCamera}>
-                    Start Teacher Camera
+                    Start Camera
                 </button>
             )}
 
@@ -33,10 +33,16 @@ export default function TeacherCamera() {
                 autoPlay
                 muted
                 playsInline
-                style={{ width: "100%", height: 300, background: "#000" }}
+                style={{
+                    width: "100%",
+                    height: "300px",
+                    background: "black",
+                    borderRadius: "12px",
+                    marginTop: "10px",
+                }}
             />
 
-            {error && <p style={{ color: "red" }}>{error}</p>}
+            <p>Status: {status}</p>
         </div>
     );
 }

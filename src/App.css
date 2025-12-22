@@ -1,140 +1,241 @@
-/* src/App.css */
-:root {
-  --bg: #242424;
-  --panel-bg: #1a1a1a;
-  --muted: rgba(255, 255, 255, 0.75);
-  --gap: 28px;
-  --card-radius: 12px;
-}
-
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
 body {
-  margin: 0;
-  background: var(--bg);
-  color: #fff;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* main 2-column grid */
-.app-root {
-  display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: var(--gap);
-  height: 100vh;
-  padding: 26px;
-  align-items: start;
-}
-
-/* left */
-.left-col {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.column-title {
-  margin: 0 0 6px 8px;
-  font-size: 20px;
-  color: #fff;
-}
-
-/* student card */
-.student-wrap {
-  background: #121212;
-  padding: 14px;
-  border-radius: var(--card-radius);
-  min-height: calc(100vh - 120px);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-}
-
-/* make student camera stretch */
-.video-card {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.video-wrapper {
-  width: 100%;
-  height: calc(100vh - 240px);
-  background: #000;
-  border-radius: 12px;
-  overflow: hidden;
+/* Home Page Styles */
+.home-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
 }
 
-video {
+.home-container {
+  max-width: 600px;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+}
+
+.home-header {
+  text-align: center;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.home-header h1 {
+  font-size: 42px;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.home-header p {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.form-card {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
   display: block;
-}
-
-/* right */
-.right-col {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.dashboard-card {
-  background: var(--panel-bg);
-  padding: 18px;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-  color: var(--muted);
-}
-
-.dashboard-card h3 {
-  margin: 0 0 8px 0;
-  color: #fff;
-}
-
-/* student info */
-.student-info {
-  color: #ccc;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2c3e50;
   font-size: 14px;
 }
 
-/* single-line alert */
-.dashboard-card .alert-line {
-  font-weight: 700;
-  color: #fff;
-  background: #111;
-  padding: 12px;
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
   border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s;
 }
 
-/* small screens stack columns */
-@media (max-width: 900px) {
-  .app-root {
+.form-group input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group small {
+  display: block;
+  margin-top: 6px;
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.role-btn {
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.role-btn:hover {
+  border-color: #667eea;
+  transform: translateY(-2px);
+}
+
+.role-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.input-with-button {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-button input {
+  flex: 1;
+}
+
+.generate-btn {
+  padding: 12px 20px;
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.generate-btn:hover {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.info-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.info-section h3 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.info-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.info-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.info-icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.info-card h4 {
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.info-card p {
+  color: #6c757d;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .home-header h1 {
+    font-size: 32px;
+  }
+
+  .form-card {
+    padding: 30px 20px;
+  }
+
+  .role-selector {
     grid-template-columns: 1fr;
-    padding: 12px;
   }
 
-  .student-wrap {
-    min-height: 360px;
+  .input-with-button {
+    flex-direction: column;
   }
 
-  .video-wrapper {
-    height: 48vh;
+  .generate-btn {
+    width: 100%;
   }
+}
+
+/* Utility Classes */
+.text-center {
+  text-align: center;
+}
+
+.mt-4 {
+  margin-top: 1.5rem;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
 }
