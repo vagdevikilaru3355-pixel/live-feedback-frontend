@@ -8,12 +8,8 @@ export default function App() {
       <h2>Live Feedback System</h2>
 
       <TeacherCamera />
-      <hr />
-
       <TeacherDashboard />
-      <hr />
-
-      <StudentCamera studentId="student-1" />
+      <StudentCamera studentId="student1" />
     </div>
   );
 }
