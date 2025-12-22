@@ -1,24 +1,28 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 export default function TeacherCamera() {
-  const videoRef = useRef(null);
-  const [status, setStatus] = useState("starting");
+    const videoRef = useRef(null);
+    const [started, setStarted] = useState(false);
 
-  useEffect(() => {
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((stream) => {
-        videoRef.current.srcObject = stream;
-        setStatus("camera-on");
-      })
-      .catch(() => setStatus("camera-error"));
-  }, []);
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            videoRef.current.srcObject = stream;
+            setStarted(true);
+        } catch {
+            alert("Allow camera access");
+        }
+    }
 
-  return (
-    <div>
-      <h3>Teacher Camera</h3>
-      <video ref={videoRef} autoPlay playsInline muted />
-      <p>Status: {status}</p>
-    </div>
-  );
+    return (
+        <div>
+            <h3>Teacher</h3>
+
+            {!started && (
+                <button onClick={startCamera}>Start Camera</button>
+            )}
+
+            <video ref={videoRef} autoPlay muted playsInline />
+        </div>
+    );
 }
