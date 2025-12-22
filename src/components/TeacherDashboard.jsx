@@ -1,11 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Camera } from '@mediapipe/camera_utils';
 
 const TeacherDashboard = ({ roomId, teacherId, teacherName, websocketUrl }) => {
     const videoRef = useRef(null);
-    const canvasRef = useRef(null);
     const wsRef = useRef(null);
-    const cameraRef = useRef(null);
 
     const [isConnected, setIsConnected] = useState(false);
     const [participants, setParticipants] = useState([]);
@@ -197,46 +194,53 @@ const TeacherDashboard = ({ roomId, teacherId, teacherName, websocketUrl }) => {
             return [newAlert, ...prev.slice(0, 49)];
         });
 
-        // Play notification sound (optional)
+        // Play notification sound
         playNotificationSound(alertData.severity);
     };
 
     // Play notification sound
     const playNotificationSound = (severity) => {
-        // You can add custom audio files here
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
 
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
 
-        oscillator.frequency.value = severity === 'high' ? 800 : 400;
-        oscillator.type = 'sine';
+            oscillator.frequency.value = severity === 'high' ? 800 : 400;
+            oscillator.type = 'sine';
 
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
 
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } catch (error) {
+            console.error('Audio error:', error);
+        }
     };
 
     // Initialize teacher's camera
     const startCamera = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { width: 640, height: 480 },
+                video: {
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
+                },
                 audio: false
             });
 
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
-                videoRef.current.play();
+                await videoRef.current.play();
                 setCameraActive(true);
+                console.log('Camera started successfully');
             }
         } catch (error) {
             console.error('Error starting camera:', error);
-            alert('Could not access camera. Please check permissions.');
+            alert('Could not access camera. Please check permissions and try again.');
         }
     };
 
@@ -246,8 +250,16 @@ const TeacherDashboard = ({ roomId, teacherId, teacherName, websocketUrl }) => {
             tracks.forEach(track => track.stop());
             videoRef.current.srcObject = null;
             setCameraActive(false);
+            console.log('Camera stopped');
         }
     };
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            stopCamera();
+        };
+    }, []);
 
     // Clear alert
     const dismissAlert = (alertId) => {
@@ -348,18 +360,19 @@ const TeacherDashboard = ({ roomId, teacherId, teacherName, websocketUrl }) => {
                         </div>
 
                         <div className="camera-wrapper">
-                            {cameraActive ? (
-                                <video
-                                    ref={videoRef}
-                                    className="teacher-video"
-                                    autoPlay
-                                    playsInline
-                                    muted
-                                />
-                            ) : (
+                            <video
+                                ref={videoRef}
+                                className="teacher-video"
+                                autoPlay
+                                playsInline
+                                muted
+                                style={{ display: cameraActive ? 'block' : 'none' }}
+                            />
+                            {!cameraActive && (
                                 <div className="camera-placeholder">
                                     <div className="placeholder-icon">📷</div>
                                     <p>Camera is off</p>
+                                    <small>Click "Start Camera" to begin</small>
                                 </div>
                             )}
                         </div>
@@ -375,6 +388,7 @@ const TeacherDashboard = ({ roomId, teacherId, teacherName, websocketUrl }) => {
                             {participants.length === 0 ? (
                                 <div className="empty-state">
                                     <p>No students in the session yet</p>
+                                    <small>Share Room ID: <strong>{roomId}</strong></small>
                                 </div>
                             ) : (
                                 participants.map(participant => (
@@ -623,18 +637,17 @@ const TeacherDashboard = ({ roomId, teacherId, teacherName, websocketUrl }) => {
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s;
-          background: #f8f9fa;
-          color: #495057;
+          background: #007bff;
+          color: white;
         }
         
         .camera-toggle.active {
           background: #dc3545;
-          color: white;
         }
         
         .camera-toggle:hover {
           transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
         .camera-wrapper {
@@ -642,6 +655,7 @@ const TeacherDashboard = ({ roomId, teacherId, teacherName, websocketUrl }) => {
           overflow: hidden;
           background: #000;
           aspect-ratio: 4/3;
+          position: relative;
         }
         
         .teacher-video {
@@ -658,11 +672,21 @@ const TeacherDashboard = ({ roomId, teacherId, teacherName, websocketUrl }) => {
           align-items: center;
           justify-content: center;
           color: white;
+          gap: 10px;
         }
         
         .placeholder-icon {
           font-size: 48px;
-          margin-bottom: 10px;
+        }
+        
+        .camera-placeholder p {
+          margin: 0;
+          font-size: 18px;
+        }
+        
+        .camera-placeholder small {
+          font-size: 14px;
+          opacity: 0.7;
         }
         
         .participants-list {
@@ -841,8 +865,17 @@ const TeacherDashboard = ({ roomId, teacherId, teacherName, websocketUrl }) => {
         }
         
         .empty-state p {
-          margin: 0;
+          margin: 0 0 8px 0;
           font-size: 14px;
+        }
+        
+        .empty-state small {
+          font-size: 12px;
+        }
+        
+        .empty-state strong {
+          color: #667eea;
+          font-weight: 600;
         }
         
         @media (max-width: 1024px) {

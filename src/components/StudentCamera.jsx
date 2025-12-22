@@ -104,7 +104,6 @@ const StudentCamera = ({ roomId, studentId, studentName, websocketUrl }) => {
         console.log('Received message:', message);
 
         if (message.type === 'teacher_message') {
-          // Handle teacher messages (optional)
           alert(`Teacher: ${message.message}`);
         }
       };
@@ -148,17 +147,14 @@ const StudentCamera = ({ roomId, studentId, studentName, websocketUrl }) => {
       const canvasCtx = canvasRef.current.getContext('2d');
       canvasCtx.save();
       canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+      // Draw clean video WITHOUT face mesh overlay
       canvasCtx.drawImage(results.image, 0, 0, canvasRef.current.width, canvasRef.current.height);
 
       if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
         const landmarks = results.multiFaceLandmarks[0];
 
-        // Draw face mesh
-        drawConnectors(canvasCtx, landmarks, window.FACEMESH_TESSELATION, { color: '#C0C0C070', lineWidth: 1 });
-        drawConnectors(canvasCtx, landmarks, window.FACEMESH_RIGHT_EYE, { color: '#FF3030' });
-        drawConnectors(canvasCtx, landmarks, window.FACEMESH_LEFT_EYE, { color: '#30FF30' });
-
-        // Analyze face
+        // Analyze face (detection happens in background - no visible overlay)
         analyzeFace(landmarks);
         setCurrentStatus('tracking');
       } else {
@@ -248,22 +244,6 @@ const StudentCamera = ({ roomId, studentId, studentName, websocketUrl }) => {
     }
   };
 
-  // Helper function to draw connections
-  const drawConnectors = (ctx, landmarks, connections, style) => {
-    ctx.strokeStyle = style.color;
-    ctx.lineWidth = style.lineWidth || 1;
-
-    for (const connection of connections) {
-      const start = landmarks[connection[0]];
-      const end = landmarks[connection[1]];
-
-      ctx.beginPath();
-      ctx.moveTo(start.x * canvasRef.current.width, start.y * canvasRef.current.height);
-      ctx.lineTo(end.x * canvasRef.current.width, end.y * canvasRef.current.height);
-      ctx.stroke();
-    }
-  };
-
   // Load MediaPipe dependencies
   useEffect(() => {
     const script = document.createElement('script');
@@ -272,7 +252,9 @@ const StudentCamera = ({ roomId, studentId, studentName, websocketUrl }) => {
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
 
