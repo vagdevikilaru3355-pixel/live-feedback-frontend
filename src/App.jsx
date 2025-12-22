@@ -1,31 +1,19 @@
-import { useState } from "react";
 import TeacherCamera from "./components/TeacherCamera";
 import StudentCamera from "./components/StudentCamera";
 import TeacherDashboard from "./components/TeacherDashboard";
 
 export default function App() {
-  const [role, setRole] = useState(null);
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Live Feedback System</h2>
 
-  if (!role) {
-    return (
-      <div style={{ padding: 40 }}>
-        <h2>Live Feedback System</h2>
-        <button onClick={() => setRole("teacher")}>Join as Teacher</button>
-        <button onClick={() => setRole("student")}>Join as Student</button>
-      </div>
-    );
-  }
+      <TeacherCamera />
+      <hr />
 
-  if (role === "teacher") {
-    return (
-      <>
-        <TeacherCamera />
-        <TeacherDashboard />
-      </>
-    );
-  }
+      <TeacherDashboard />
+      <hr />
 
-  if (role === "student") {
-    return <StudentCamera studentId="student-1" />;
-  }
+      <StudentCamera studentId="student-1" />
+    </div>
+  );
 }

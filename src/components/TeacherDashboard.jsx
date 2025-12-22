@@ -1,36 +1,41 @@
 import { useEffect, useState } from "react";
+import { WS_BASE } from "../config";
 
-export default function TeacherDashboard() {
-    const [students, setStudents] = useState([]);
+export default function TeacherDashboard({ teacherId, room }) {
+    const [participants, setParticipants] = useState([]);
     const [alerts, setAlerts] = useState([]);
 
     useEffect(() => {
         const ws = new WebSocket(
-            "wss://YOUR-BACKEND.onrender.com/ws?role=teacher&client_id=teacher"
+            `${WS_BASE}/ws?role=teacher&client_id=${teacherId}&room=${room}`
         );
 
-        ws.onmessage = e => {
+        ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
 
-            if (data.type === "participants_snapshot") {
-                setStudents(data.students);
+            if (data.type === "participant_joined") {
+                setParticipants((p) => [...new Set([...p, data.id])]);
+            }
+
+            if (data.type === "participant_left") {
+                setParticipants((p) => p.filter((x) => x !== data.id));
             }
 
             if (data.type === "attention_feedback") {
-                setAlerts(a => [...a, data]);
+                setAlerts((a) => [...a, `${data.id}: ${data.status}`]);
             }
         };
-    }, []);
+
+        return () => ws.close();
+    }, [teacherId, room]);
 
     return (
         <div>
             <h3>Participants</h3>
-            {students.map(s => <div key={s}>{s}</div>)}
+            <ul>{participants.map((p) => <li key={p}>{p}</li>)}</ul>
 
             <h3>Alerts</h3>
-            {alerts.map((a, i) =>
-                <div key={i}>{a.id} → {a.status}</div>
-            )}
+            <ul>{alerts.map((a, i) => <li key={i}>{a}</li>)}</ul>
         </div>
     );
 }
